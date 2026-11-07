@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#eee8f6">
+<title>rutoさん</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Yomogi&display=swap" rel="stylesheet">
+  <style>
+      :root{--ink:#6d528f;--muted:#8c7a9e;--lav:#eee8f6;--deep:#8972a5;--paper:#fffdfd;--hand:"Yomogi","Klee One","Hiragino Maru Gothic ProN",cursive}
+      *{box-sizing:border-box}
+      body{margin:0;min-height:100vh;color:var(--ink);font-family:"Yu Mincho","Hiragino Mincho ProN",serif;background:radial-gradient(ellipse at 12% 5%,#fff 0,transparent 36%),linear-gradient(145deg,#f5f0fa,#e6ddf0)}
+      .page{width:min(100% - 30px,620px);margin:auto;padding:42px 0 50px}
+      header{text-align:center;margin-bottom:30px}
+      .eyebrow{font:11px Arial,sans-serif;letter-spacing:.24em;color:var(--muted)}
+      h1{font-size:clamp(38px,10vw,54px);font-weight:400;font-style:italic;margin:9px 0 5px}
+      .subtitle{font-size:13px;letter-spacing:.1em;color:var(--muted);margin:0}
+      .hint{font-size:13px;color:var(--muted);margin-top:20px}
+      .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:34px 15px;padding-top:20px}
+      .item{text-align:center;min-width:0}
+      .envelope-btn{border:0;background:none;padding:0;width:100%;cursor:pointer;color:inherit;-webkit-tap-highlight-color:transparent}
+      .envelope{position:relative;display:block;width:100%;aspect-ratio:1.42/1;perspective:700px;filter:drop-shadow(0 7px 8px #79658b2b);transition:transform .2s}
+      .envelope-btn:active .envelope{transform:scale(.98)}
+      .env-back{position:absolute;inset:0;border:1px solid #d6c9e3;border-radius:5px;background:linear-gradient(145deg,#e6dcef,#cfc0df)}
+      .letter-peek{position:absolute;z-index:2;left:10%;width:80%;height:75%;bottom:7%;border-radius:3px;background:linear-gradient(#fff,#f8f4fb);box-shadow:0 1px 4px #6d587b33;transition:transform .6s cubic-bezier(.2,.9,.25,1.15) .55s;display:flex;align-items:flex-start;justify-content:center;padding-top:12px;color:#8a759e;font-size:10px;letter-spacing:.12em}
+      .env-front{position:absolute;inset:0;z-index:3;border-radius:5px;background:linear-gradient(145deg,#f7f1fb,#dfd3eb);clip-path:polygon(0 0,50% 55%,100% 0,100% 100%,0 100%);border:1px solid #d2c3e0}
+      .env-fold-left,.env-fold-right{position:absolute;z-index:4;inset:0;pointer-events:none}
+      .env-fold-left{background:linear-gradient(35deg,transparent 49.5%,#c9b9d9 50%,transparent 50.7%)}
+      .env-fold-right{background:linear-gradient(145deg,transparent 49.5%,#c9b9d9 50%,transparent 50.7%)}
+      /* ふた：開くと上に「ぱかっ」と反転し、途中で手紙の後ろに回る */
+      .flap{position:absolute;z-index:5;left:0;top:0;width:100%;height:57%;background:linear-gradient(180deg,#fbf8ff,#d9cce7);clip-path:polygon(0 0,100% 0,50% 100%);transform-origin:50% 0;transform:rotateX(0);transition:transform .55s cubic-bezier(.45,0,.2,1.25) .15s,z-index 0s .4s,filter .55s .15s}
+      .seal{position:absolute;z-index:6;left:50%;top:53%;transform:translate(-50%,-50%);width:39px;height:39px;border-radius:50%;display:grid;place-items:center;color:#fff;background:radial-gradient(circle at 35% 30%,#b5a1ce,#806a98 76%);border:2px solid #ffffff99;box-shadow:0 2px 5px #48346044;transition:opacity .25s,transform .25s}
+      .sender{display:block;margin-top:9px;font-size:15px;letter-spacing:.05em;font-family:var(--hand)}
+      .num{display:block;margin-top:3px;font:10px Arial,sans-serif;letter-spacing:.2em;color:#9b8bab}
+      .item.opened .seal{opacity:0;transform:translate(-50%,-50%) scale(1.5)}
+      .item.opened .flap{transform:rotateX(180deg);z-index:1;filter:brightness(.93)}
+      .item.opened .letter-peek{transform:translateY(-58%)}
+      .item.opened .envelope{animation:wobble .5s ease .05s}
+      @keyframes wobble{0%,100%{transform:rotate(0)}30%{transform:rotate(-2.5deg)}60%{transform:rotate(2deg)}}
+      .open-mark{display:none;color:#8a719f;font:italic 12px Arial,sans-serif;letter-spacing:.08em;margin-top:4px}
+      .item.opened .open-mark{display:block}
+      .footer{text-align:center;margin-top:34px;color:var(--muted);font-size:11px;letter-spacing:.12em}
+      .modal{position:fixed;inset:0;z-index:20;background:#34284499;backdrop-filter:blur(5px);display:none;align-items:center;justify-content:center;padding:17px;perspective:1100px}
+      .modal.show{display:flex;animation:fade .3s ease both}
+      @keyframes fade{from{opacity:0}to{opacity:1}}
+      .letter-card{position:relative;width:min(100%,490px);max-height:88vh;overflow:auto;padding:35px 25px 25px;background:linear-gradient(145deg,#fff,#faf6fc);border:1px solid #e5d9ed;box-shadow:0 20px 60px #21163055;border-radius:5px;transform-origin:50% 0;animation:unfold .6s cubic-bezier(.2,.8,.2,1) both}
+      @keyframes unfold{from{opacity:0;transform:translateY(50px) rotateX(-70deg) scale(.7)}60%{opacity:1}to{opacity:1;transform:translateY(0) rotateX(0) scale(1)}}
+      .letter-card:before{content:"";position:absolute;inset:11px;border:1px solid #eee6f3;pointer-events:none}
+      .close{position:absolute;right:15px;top:12px;z-index:2;width:34px;height:34px;border:1px solid #ded3e8;border-radius:50%;background:#fff;color:var(--ink);font:20px Arial;cursor:pointer}
+      .inner{position:relative;z-index:1}
+      .kicker{text-align:center;font:10px Arial,sans-serif;letter-spacing:.22em;color:var(--muted)}
+      h2{text-align:left;font-size:26px;font-weight:400;margin:25px 0 30px;font-family:var(--hand)}
+      .message{white-space:pre-wrap;overflow-wrap:anywhere;min-height:90px;line-height:2.1;font-size:19px;color:#54485f;font-family:var(--hand)}
+      .message img{display:block;width:100%;height:auto}
+      .signature{text-align:right;margin-top:24px;font-size:19px;color:#806b99;font-family:var(--hand)}
+      .bottom{text-align:center;margin-top:30px;font-size:11px;letter-spacing:.12em;color:#9b89aa}
+      .back{display:block;margin:23px auto 0;padding:10px 22px;border:1px solid #cfc0df;border-radius:30px;background:#f4eff9;color:var(--ink);cursor:pointer;font-size:13px}
+      @media(min-width:520px){.grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:38px 20px}.page{padding-top:55px}}
+      @media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important;animation:none!important}}
+  </style>
+</head>
+<body>
+<main class="page">
+<header>
+<div class="eyebrow">A LITTLE GIFT FOR YOU</div>
+<h1 id="title">rutoさん</h1>
+<p class="subtitle">3回生からのメッセージ</p>
+<p class="hint">好きな封筒をタップしてください</p>
+</header>
+<section class="grid" id="grid" aria-label="手紙の一覧"></section>
+<footer class="footer">WITH LOVE, FROM SIX OF US</footer>
+</main>
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="to">
+<article class="letter-card">
+<button class="close" id="close" aria-label="閉じる">×</button>
+<div class="inner">
+<div class="kicker">A LETTER FOR YOU</div>
+<h2 id="to"></h2>
+<div class="message" id="message"></div>
+<div class="signature" id="from"></div>
+<div class="bottom">WITH LOVE ♡</div>
+<button class="back" id="back">封筒の一覧に戻る</button>
+</div>
+</article>
+</div>
+<script>
+// ── タイトルの名前はファイル名から決まります ──
+// 例: NICO.html → 「NICOさん ♡」 / RIMU.html → 「RIMUさん ♡」
+// index.html など名前が取れないときは DEFAULT_NAME を使います。
+const DEFAULT_NAME = "NICO";
+const fileName = decodeURIComponent(location.pathname.split("/").pop() || "").replace(/\.html?$/i, "");
+const recipient = (fileName && fileName.toLowerCase() !== "index") ? fileName : DEFAULT_NAME;
+document.getElementById("title").textContent = `${recipient}さん `;
+document.title = `${recipient}さん `;
+
+// ここに名前とメッセージを入力してください。
+// 手書きのスキャン画像に差し替えるときは image に画像のパスを入れると、
+// 本文の代わりに画像が表示されます。 例: image:"images/nico_rimu.png"
+const letters = [
+ {name:"るとさんへ", from:"よる", message:"入替戦、絶対勝ちましょう。", image:""},
+ {name:"るとさんへ", from:"あん", message:"ここにメッセージを入力してください。", image:""},
+ {name:"るとさんへ", from:"りむ", message:"ここにメッセージを入力してください。", image:""},
+ {name:"るとさんへ", from:"いぶ", message:"ここにメッセージを入力してください。", image:""},
+ {name:"るとさんへ", from:"とら", message:"ここにメッセージを入力してください。", image:""},
+ {name:"るとさんへ", from:"はお", message:"ここにメッセージを入力してください。", image:""}
+];
+
+const grid=document.getElementById("grid"), modal=document.getElementById("modal");
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const OPEN_DELAY = reduceMotion ? 0 : 1250; // 封筒が開き切ってから手紙を表示
+let busy = false;
+
+function showLetter(letter){
+  document.getElementById("to").textContent=letter.name;
+  const msg=document.getElementById("message");
+  msg.textContent="";
+  if(letter.image){
+    const img=document.createElement("img");
+    img.src=letter.image; img.alt=letter.message||"手書きのメッセージ";
+    msg.appendChild(img);
+  }else{
+    msg.textContent=letter.message;
+  }
+  document.getElementById("from").textContent=letter.from;
+  modal.classList.add("show");
+  document.getElementById("close").focus();
+}
+
+letters.forEach((letter,i)=>{
+ const item=document.createElement("div"); item.className="item";
+ const btn=document.createElement("button");btn.className="envelope-btn";btn.type="button";
+ btn.setAttribute("aria-label",`${letter.from}からの手紙を開く`);
+ btn.innerHTML=`<span class="envelope"><span class="env-back"></span><span class="letter-peek">A LETTER FOR YOU</span><span class="env-front"></span><span class="env-fold-left"></span><span class="env-fold-right"></span><span class="flap"></span><span class="seal">♡</span></span><span class="sender"></span><span class="num">LETTER 0${i+1}</span><span class="open-mark">OPEN ♡</span>`;
+ btn.querySelector(".sender").textContent=letter.from;
+ btn.addEventListener("click",()=>{
+   if(busy) return;
+   if(item.classList.contains("opened")){ showLetter(letter); return; }
+   busy=true;
+   item.classList.add("opened");
+   setTimeout(()=>{ busy=false; showLetter(letter); }, OPEN_DELAY);
+ });
+ item.appendChild(btn);grid.appendChild(item);
+});
+function closeModal(){modal.classList.remove("show")}
+document.getElementById("close").addEventListener("click",closeModal);
+document.getElementById("back").addEventListener("click",closeModal);
+modal.addEventListener("click",e=>{if(e.target===modal)closeModal()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal()});
+</script>
+</body>
+</html>
