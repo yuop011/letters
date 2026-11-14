@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#eee5d8">
+<title>メッセージレター</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Yomogi&display=swap" rel="stylesheet">
+<style>
+/* ===== 色とフォント ===== */
+:root{
+  --page-bg:#efe6d8;     /* 背景色（実際は下の theme の bg が使われる） */
+
+  /* 背景の上の文字色 */
+  --page-text:#3e3350;   /* 見出し「○○さん」、封筒の下の名前など */
+  --page-sub:#5f566b;    /* 英字の小見出し、サブタイトル、案内文など */
+  --page-line:#00000022;
+
+  /* 手紙の中の文字色 */
+  --ink:#6d528f;         /* 宛名「○○さんへ」 */
+  --muted:#9b8876;       /* A LETTER FOR YOU */
+  --paper:#fffdf9;
+
+  /* フォント */
+  --hand:"Yomogi","Klee One","Hiragino Maru Gothic ProN",cursive;  /* 手書き風（変えるときは10行目も） */
+  --serif:"Yu Mincho","Hiragino Mincho ProN",serif;                 /* 明朝体 */
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  min-height:100vh;
+  color:var(--page-text);
+  font-family:var(--serif);
+  background:var(--page-bg);
+}
+.page{width:min(100% - 30px,760px);margin:auto;padding:42px 0 50px}
+header{text-align:center;margin-bottom:30px}
+.eyebrow{font:11px Arial,sans-serif;letter-spacing:.24em;color:var(--page-sub)}
+h1{font-size:clamp(38px,10vw,54px);font-weight:400;font-style:italic;margin:9px 0 5px}
+.subtitle{font-size:13px;letter-spacing:.1em;color:var(--page-sub);margin:0}
+.hint{font-size:13px;color:var(--page-sub);margin-top:20px}
+
+/* 封筒一覧 */
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:34px 15px;padding-top:20px}
+.item{text-align:center;min-width:0}
+.envelope-btn{border:0;background:none;padding:0;width:100%;cursor:pointer;color:inherit;-webkit-tap-highlight-color:transparent}
+.envelope{position:relative;display:block;width:100%;aspect-ratio:1.42/1;perspective:700px;filter:drop-shadow(0 7px 8px #2a1e3a33);transition:transform .2s}
+.envelope-btn:active .envelope{transform:scale(.98)}
+.env-back{position:absolute;inset:0;border:1px solid #d6c9e3;border-radius:5px;background:linear-gradient(145deg,#e6dcef,#cfc0df)}
+.letter-peek{position:absolute;z-index:2;left:10%;width:80%;height:75%;bottom:7%;border-radius:3px;background:linear-gradient(#fff,#f8f4fb);box-shadow:0 1px 4px #6d587b33;transition:transform .6s cubic-bezier(.2,.9,.25,1.15) .55s;display:flex;align-items:flex-start;justify-content:center;padding-top:12px;color:#8a759e;font-size:10px;letter-spacing:.12em}
+.env-front{position:absolute;inset:0;z-index:3;border-radius:5px;background:linear-gradient(145deg,#f7f1fb,#dfd3eb);clip-path:polygon(0 0,50% 55%,100% 0,100% 100%,0 100%);border:1px solid #d2c3e0}
+.env-fold-left,.env-fold-right{position:absolute;z-index:4;inset:0;pointer-events:none}
+.env-fold-left{background:linear-gradient(35deg,transparent 49.5%,#c9b9d9 50%,transparent 50.7%)}
+.env-fold-right{background:linear-gradient(145deg,transparent 49.5%,#c9b9d9 50%,transparent 50.7%)}
+.flap{position:absolute;z-index:5;left:0;top:0;width:100%;height:57%;background:linear-gradient(180deg,#fbf8ff,#d9cce7);clip-path:polygon(0 0,100% 0,50% 100%);transform-origin:50% 0;transform:rotateX(0);transition:transform .55s cubic-bezier(.45,0,.2,1.25) .15s,z-index 0s .4s,filter .55s .15s}
+.seal{position:absolute;z-index:6;left:50%;top:53%;transform:translate(-50%,-50%);width:39px;height:39px;border-radius:50%;display:grid;place-items:center;color:#fff;background:radial-gradient(circle at 35% 30%,#b5a1ce,#806a98 76%);border:2px solid #ffffff99;box-shadow:0 2px 5px #48346044;transition:opacity .25s,transform .25s}
+.sender{display:block;margin-top:9px;font-size:15px;letter-spacing:.05em;font-family:var(--hand)}
+.num{display:block;margin-top:3px;font:10px Arial,sans-serif;letter-spacing:.2em;color:var(--page-sub)}
+.item.opened .seal{opacity:0;transform:translate(-50%,-50%) scale(1.5)}
+.item.opened .flap{transform:rotateX(180deg);z-index:1;filter:brightness(.93)}
+.item.opened .letter-peek{transform:translateY(-58%)}
+.item.opened .envelope{animation:wobble .5s ease .05s}
+@keyframes wobble{0%,100%{transform:rotate(0)}30%{transform:rotate(-2.5deg)}60%{transform:rotate(2deg)}}
+.open-mark{display:none;color:var(--page-text);font:italic 12px Arial,sans-serif;letter-spacing:.08em;margin-top:4px}
+.item.opened .open-mark{display:block}
+
+/* メンバー紹介 */
+.members-section{margin-top:66px;padding-top:32px;border-top:1px solid var(--page-line)}
+.members-heading{text-align:center;margin-bottom:28px}
+.members-heading h2{font-size:clamp(22px,5vw,29px);font-weight:400;letter-spacing:.045em;margin:11px 0 7px;color:var(--page-text)}
+.members-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 12px}
+.member-card{display:flex;align-items:center;gap:11px;min-width:0;padding:10px;background:#fffdf9;border:1px solid #00000014;border-radius:4px;box-shadow:0 3px 8px #00000012}
+.member-photo-wrap{position:relative;width:78px;aspect-ratio:3/4;flex-shrink:0;background:#e8ddcf;overflow:hidden}
+.member-photo{display:block;width:100%;height:100%;object-fit:cover}
+.member-photo-placeholder{position:absolute;inset:0;display:grid;place-items:center;color:#a18b73;font:10px Arial,sans-serif;letter-spacing:.08em;text-align:center;padding:5px}
+.member-info{min-width:0}
+/* MEMBER 01 */
+.member-number{font:9px Arial,sans-serif;color:#a28b70;letter-spacing:.12em}
+/* メンバーの名前 */
+.member-name{font-size:15px;color:#725c46;margin:5px 0;overflow-wrap:anywhere}
+/* メンバーの特徴 */
+.member-feature{font-size:11px;line-height:1.7;color:#806e5b;overflow-wrap:anywhere}
+
+/* 手紙モーダル */
+.modal{position:fixed;inset:0;z-index:20;background:#34284499;backdrop-filter:blur(5px);display:none;align-items:center;justify-content:center;padding:17px;perspective:1100px}
+.modal.show{display:flex;animation:fade .3s ease both}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.letter-card{position:relative;width:min(100%,490px);max-height:88vh;overflow:auto;padding:35px 25px 25px;color:var(--ink);background:linear-gradient(145deg,#fff,#faf6fc);border:1px solid #e5d9ed;box-shadow:0 20px 60px #21163055;border-radius:5px;transform-origin:50% 0;animation:unfold .6s cubic-bezier(.2,.8,.2,1) both}
+@keyframes unfold{from{opacity:0;transform:translateY(50px) rotateX(-70deg) scale(.7)}60%{opacity:1}to{opacity:1;transform:translateY(0) rotateX(0) scale(1)}}
+.letter-card:before{content:"";position:absolute;inset:11px;border:1px solid #eee6f3;pointer-events:none}
+.close{position:absolute;right:15px;top:12px;z-index:2;width:34px;height:34px;border:1px solid #ded3e8;border-radius:50%;background:#fff;color:var(--ink);font:20px Arial;cursor:pointer}
+.inner{position:relative;z-index:1}
+.kicker{text-align:center;font:10px Arial,sans-serif;letter-spacing:.22em;color:var(--muted)}
+.letter-card h2{text-align:left;font-size:26px;font-weight:400;margin:25px 0 30px;font-family:var(--hand);color:var(--ink)}
+/* 手紙の本文 */
+.message{white-space:pre-wrap;overflow-wrap:anywhere;min-height:90px;line-height:2.1;font-size:19px;color:#54485f;font-family:var(--hand)}
+.message img{display:block;width:100%;height:auto}
+/* 手紙の差出人 */
+.signature{text-align:right;margin-top:24px;font-size:19px;color:#806b99;font-family:var(--hand)}
+.bottom{text-align:center;margin-top:30px;font-size:11px;letter-spacing:.12em;color:#9b89aa}
+.back{display:block;margin:23px auto 0;padding:10px 22px;border:1px solid #cfc0df;border-radius:30px;background:#f4eff9;color:var(--ink);cursor:pointer;font-size:13px}
+
+@media(min-width:600px){
+  .page{padding-top:55px}
+  .grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:38px 20px}
+  .members-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+  .member-card{display:block;text-align:center;padding:12px}
+  .member-photo-wrap{width:100%;max-width:170px;margin:0 auto 10px}
+  .member-info{text-align:center}
+}
+@media(max-width:360px){
+  .members-grid{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*:before,*:after{transition:none!important;animation:none!important}
+}
+</style>
+</head>
+<body>
+<main class="page">
+  <header>
+    <div class="eyebrow">A LITTLE GIFT FOR YOU</div>
+    <h1 id="title">にこさん</h1>
+    <p class="subtitle">3回生からのメッセージ</p>
+    <p class="hint">好きな封筒をタップしてください</p>
+  </header>
+
+  <section class="grid" id="grid" aria-label="手紙の一覧"></section>
+
+  <section class="members-section" aria-labelledby="members-title">
+    <div class="members-heading">
+      <div class="eyebrow">OUR TEAM</div>
+      <h2 id="members-title">26 TEAM MEMBER LIST</h2>
+    </div>
+    <div class="members-grid" id="members-grid"></div>
+  </section>
+</main>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="to">
+  <article class="letter-card">
+    <button class="close" id="close" aria-label="閉じる">×</button>
+    <div class="inner">
+      <div class="kicker">A LETTER FOR YOU</div>
+      <h2 id="to"></h2>
+      <div class="message" id="message"></div>
+      <div class="signature" id="from"></div>
+      <div class="bottom">WITH LOVE ♡</div>
+      <button class="back" id="back">封筒の一覧に戻る</button>
+    </div>
+  </article>
+</div>
+
+<script>
+// ===== 名前と背景色（dark:true で文字が白になる） =====
+const theme = { name:"いち", bg:"#6cb8f2" };  // 青（フレッシュ）
+
+const recipient = theme.name;
+document.getElementById("title").textContent = `${recipient}さん`;
+document.title = `${recipient}さん`;
+const rootStyle = document.documentElement.style;
+rootStyle.setProperty("--page-bg", theme.bg);
+if(theme.dark){
+  rootStyle.setProperty("--page-text", "#ffffff");
+  rootStyle.setProperty("--page-sub", "#ffffffcc");
+  rootStyle.setProperty("--page-line", "#ffffff40");
+}
+document.querySelector('meta[name="theme-color"]')?.setAttribute("content", theme.bg);
+
+// ===== 手紙（image に手書き画像のパスを入れると画像で表示） =====
+const letters = [
+  {name:"", from:"よる", message:"入替戦、絶対勝ちましょう。", image:""},
+  {name:"", from:"あん", message:"ここにメッセージを入力してください。", image:""},
+  {name:"", from:"りむ", message:"ここにメッセージを入力してください。", image:""},
+  {name:"", from:"いぶ", message:"ここにメッセージを入力してください。", image:""},
+  {name:"", from:"とら", message:"ここにメッセージを入力してください。", image:""},
+  {name:"", from:"はお", message:"ここにメッセージを入力してください。", image:""}
+];
+
+// ===== メンバー紹介 =====
+const members = [
+  {name:"名前1", feature:"その人の特徴や好きなところを入力してください。", image:"images/member01.jpg"},
+  {name:"名前2", feature:"その人の特徴や好きなところを入力してください。", image:"images/member02.jpg"},
+  {name:"名前3", feature:"その人の特徴や好きなところを入力してください。", image:"images/member03.jpg"},
+  {name:"名前4", feature:"その人の特徴や好きなところを入力してください。", image:"images/member04.jpg"},
+  {name:"名前5", feature:"その人の特徴や好きなところを入力してください。", image:"images/member05.jpg"},
+  {name:"名前6", feature:"その人の特徴や好きなところを入力してください。", image:"images/member06.jpg"},
+  {name:"名前7", feature:"その人の特徴や好きなところを入力してください。", image:"images/member07.jpg"},
+  {name:"名前8", feature:"その人の特徴や好きなところを入力してください。", image:"images/member08.jpg"},
+  {name:"名前9", feature:"その人の特徴や好きなところを入力してください。", image:"images/member09.jpg"},
+  {name:"名前10", feature:"その人の特徴や好きなところを入力してください。", image:"images/member10.jpg"},
+  {name:"名前11", feature:"その人の特徴や好きなところを入力してください。", image:"images/member11.jpg"},
+  {name:"名前12", feature:"その人の特徴や好きなところを入力してください。", image:"images/member12.jpg"},
+  {name:"名前13", feature:"その人の特徴や好きなところを入力してください。", image:"images/member13.jpg"},
+  {name:"名前14", feature:"その人の特徴や好きなところを入力してください。", image:"images/member14.jpg"},
+  {name:"名前15", feature:"その人の特徴や好きなところを入力してください。", image:"images/member15.jpg"},
+  {name:"名前16", feature:"その人の特徴や好きなところを入力してください。", image:"images/member16.jpg"},
+  {name:"名前17", feature:"その人の特徴や好きなところを入力してください。", image:"images/member17.jpg"},
+  {name:"名前18", feature:"その人の特徴や好きなところを入力してください。", image:"images/member18.jpg"},
+  {name:"名前19", feature:"その人の特徴や好きなところを入力してください。", image:"images/member19.jpg"},
+  {name:"名前20", feature:"その人の特徴や好きなところを入力してください。", image:"images/member20.jpg"},
+  {name:"名前21", feature:"その人の特徴や好きなところを入力してください。", image:"images/member21.jpg"},
+  {name:"名前22", feature:"その人の特徴や好きなところを入力してください。", image:"images/member22.jpg"},
+  {name:"名前23", feature:"その人の特徴や好きなところを入力してください。", image:"images/member23.jpg"}
+];
+
+const grid = document.getElementById("grid");
+const modal = document.getElementById("modal");
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const OPEN_DELAY = reduceMotion ? 0 : 1250;
+let busy = false;
+
+function showLetter(letter){
+  document.getElementById("to").textContent = letter.name || `${recipient}さんへ`;
+  const msg = document.getElementById("message");
+  msg.textContent = "";
+  if(letter.image){
+    const img = document.createElement("img");
+    img.src = letter.image;
+    img.alt = letter.message || "手書きのメッセージ";
+    msg.appendChild(img);
+  }else{
+    msg.textContent = letter.message;
+  }
+  document.getElementById("from").textContent = letter.from;
+  modal.classList.add("show");
+  document.getElementById("close").focus();
+}
+
+letters.forEach((letter,i)=>{
+  const item = document.createElement("div");
+  item.className = "item";
+  const btn = document.createElement("button");
+  btn.className = "envelope-btn";
+  btn.type = "button";
+  btn.setAttribute("aria-label", `${letter.from}からの手紙を開く`);
+  btn.innerHTML = `<span class="envelope"><span class="env-back"></span><span class="letter-peek">A LETTER FOR YOU</span><span class="env-front"></span><span class="env-fold-left"></span><span class="env-fold-right"></span><span class="flap"></span><span class="seal">♡</span></span><span class="sender"></span><span class="num">LETTER 0${i+1}</span><span class="open-mark">OPEN ♡</span>`;
+  btn.querySelector(".sender").textContent = letter.from;
+  btn.addEventListener("click",()=>{
+    if(busy) return;
+    if(item.classList.contains("opened")){showLetter(letter);return;}
+    busy = true;
+    item.classList.add("opened");
+    window.setTimeout(()=>{busy=false;showLetter(letter);},OPEN_DELAY);
+  });
+  item.appendChild(btn);
+  grid.appendChild(item);
+});
+
+const memberGrid = document.getElementById("members-grid");
+members.forEach((member,i)=>{
+  const card = document.createElement("article");
+  card.className = "member-card";
+
+  const photoWrap = document.createElement("div");
+  photoWrap.className = "member-photo-wrap";
+
+  const placeholder = document.createElement("div");
+  placeholder.className = "member-photo-placeholder";
+  placeholder.textContent = "PHOTO";
+
+  const photo = document.createElement("img");
+  photo.className = "member-photo";
+  photo.src = member.image;
+  photo.alt = `${member.name}の写真`;
+  photo.loading = "lazy";
+  photo.addEventListener("error",()=>{photo.remove();});
+  photoWrap.append(placeholder,photo);
+
+  const info = document.createElement("div");
+  info.className = "member-info";
+
+  const number = document.createElement("div");
+  number.className = "member-number";
+  number.textContent = `MEMBER ${String(i+1).padStart(2,"0")}`;
+
+  const name = document.createElement("div");
+  name.className = "member-name";
+  name.textContent = member.name;
+
+  const feature = document.createElement("div");
+  feature.className = "member-feature";
+  feature.textContent = member.feature;
+
+  info.append(number,name,feature);
+  card.append(photoWrap,info);
+  memberGrid.appendChild(card);
+
+  photo.addEventListener("load",()=>{placeholder.style.display="none";});
+});
+
+function closeModal(){modal.classList.remove("show");}
+document.getElementById("close").addEventListener("click",closeModal);
+document.getElementById("back").addEventListener("click",closeModal);
+modal.addEventListener("click",e=>{if(e.target===modal)closeModal();});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal();});
+</script>
+</body>
+</html>
